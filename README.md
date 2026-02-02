@@ -50,4 +50,4 @@ furniture-store/
 ## Contacts
 Author: Pavlo Tuz  
 Email: ptuztuz2@gmail.com  
-LinkedIn: [Pavlo Tuz](linkedin.com/in/pavlo-tuz-junior)
+LinkedIn: [Pavlo Tuz](https://www.linkedin.com/in/pavlo-tuz-junior/)
