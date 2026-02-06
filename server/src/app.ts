@@ -5,7 +5,7 @@ import morgan from "morgan";
 
 export const app = express();
 
-// Middleware
+// Middlewares
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
