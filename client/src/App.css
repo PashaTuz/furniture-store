@@ -40,3 +40,63 @@
 .read-the-docs {
   color: #888;
 }
+
+/* --- АДАПТАЦІЯ ДЛЯ СМАРТФОНІВ --- */
+@media (max-width: 600px) {
+
+  /* 1. Головний контейнер: прибираємо жорсткі межі */
+  .container,
+  .App {
+    padding: 10px;
+    width: 100%;
+    overflow-x: hidden;
+    /* Щоб нічого не вилазило вбік */
+  }
+
+  /* 2. Шапка сайту (Header): робимо елементи один під одним */
+  header,
+  .nav-menu {
+    display: flex;
+    flex-direction: column;
+    /* Вертикально */
+    gap: 15px;
+    text-align: center;
+  }
+
+  /* 3. Сітка товарів (Grid): найважливіше! */
+  /* Заміни .product-list на свій клас, де лежать картки товарів */
+  .product-list,
+  .grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    /* Один товар у рядку */
+    gap: 15px;
+  }
+
+  /* 4. Картка товару: робимо її компактною */
+  .card,
+  .product-item {
+    width: 100% !important;
+    margin: 0 auto;
+  }
+
+  /* 5. Кнопки: робимо їх великими для пальців */
+  button {
+    width: 100%;
+    height: 50px;
+    font-size: 18px;
+  }
+
+  /* 6. Тексти: щоб не були завеликими */
+  h1 {
+    font-size: 26px;
+  }
+
+  h2 {
+    font-size: 22px;
+  }
+
+  p {
+    font-size: 16px;
+  }
+}

@@ -34,7 +34,7 @@ function App() {
             mt-10: відступ зверху, щоб текст не "прилипав" до шапки.
             p-4: внутрішні відступи для зручного відображення на телефонах.
         */}
-        <main className="container mx-auto mt-10 p-4">
+        <main className="container mx-auto mt-6 md:mt-10 p-4 px-2 sm:px-4">
           
           {/* <Routes> аналізує URL в адресному рядку браузера. */}
           <Routes>
