@@ -7,50 +7,76 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// --- КОРИСТУВАЧІ ---
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   password  String
   name      String?
   role      Role     @default(USER)
-  orders    Order[]
+  orders    Order[]  // Зв'язок: один користувач може мати багато замовлень
   createdAt DateTime @default(now())
 }
 
+// --- ТОВАРИ ---
 model Product {
-  id          Int         @id @default(autoincrement())
-  name        String
-  description String?
-  price       Float
-  category    String
-  imageUrl    String?
-  stock       Int         @default(0)
-  orderItems  OrderItem[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id          String         @id @default(cuid()) // Унікальний ID (наприклад, "clh...")
+  name        String         // Назва товару (Стіл "Трансформер")
+  description String?        // Опис товару
+  category    String         // Категорія (Столи, Пуфи)
+  
+  // ВІДНОСИНИ:
+  colors      ProductColor[] // Список доступних кольорів (зв'язок 1-до-багатьох)
+  sizes       ProductSize[]  // Список доступних розмірів та цін (зв'язок 1-до-багатьох)
+  orderItems  OrderItem[]    // Зв'язок для історії замовлень
+
+  createdAt   DateTime       @default(now())
 }
 
+// --- ВАРІАЦІЇ КОЛЬОРІВ (Впливають на картинку) ---
+model ProductColor {
+  id        String  @id @default(cuid())
+  name      String  // Наприклад: "Білий", "Дуб Венге"
+  imageUrl  String  // Шлях до картинки: "/images/products/table-white.jpg"
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+// --- ВАРІАЦІЇ РОЗМІРІВ (Впливають на ціну) ---
+model ProductSize {
+  id        String  @id @default(cuid())
+  name      String  // Наприклад: "80x120", "100x200"
+  price     Float   // Ціна саме за цей розмір (напр. 13500.00)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+// --- ЗАМОВЛЕННЯ ---
 model Order {
   id        Int         @id @default(autoincrement())
   userId    Int
   user      User        @relation(fields: [userId], references: [id])
   items     OrderItem[]
-  total     Float
-  status    String      @default("PENDING")
+  total     Float       // Загальна сума всього замовлення
+  status    String      @default("PENDING") // Статус (в очікуванні, доставлено тощо)
   createdAt DateTime    @default(now())
 }
 
+// --- КОНКРЕТНІ ТОВАРИ У КОШИКУ/ЗАМОВЛЕННІ ---
 model OrderItem {
   id        Int     @id @default(autoincrement())
   orderId   Int
   order     Order   @relation(fields: [orderId], references: [id])
-  productId Int
+  
+  // Зверни увагу: productId тепер String, бо в моделі Product він String
+  productId String
   product   Product @relation(fields: [productId], references: [id])
-  quantity  Int
-  price     Float
+  
+  quantity  Int     // Кількість штук
+  price     Float   // Ціна, за якою купили (фіксуємо на момент покупки)
 }
 
 enum Role {
   USER
-  AD
+  ADMIN // Виправив "AD" на "ADMIN", щоб було зрозуміліше
 }
