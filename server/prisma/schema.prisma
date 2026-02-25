@@ -46,7 +46,8 @@ model ProductColor {
 model ProductSize {
   id        String  @id @default(cuid())
   name      String  // Наприклад: "80x120", "100x200"
-  price     Float   // Ціна саме за цей розмір (напр. 13500.00)
+  price     Float   // Ціна 
+  comment String?   // коментар до розмірної сітки
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }

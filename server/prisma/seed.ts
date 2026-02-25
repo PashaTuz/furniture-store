@@ -422,15 +422,14 @@ async function main() {
             name: "Зелений", imageUrl: "/colors/Zeleniy  0071.jpg"
           },
           {
-            name: "Жовтий", 
-            imageUrl: "/colors/Zhovtyi 0070.jpg"
+            name: "Жовтий", imageUrl: "/colors/Zhovtyi 0070.jpg"
           },
         ]
       },
       // Добавити розміри тут:
       sizes: {
         create: [
-          { name: "1000x600", price: 5000 }, // Ціни вказати нормальні, це приклад
+          { name: "1000x600", price: 5000, comment: "вмімі" }, // Ціни вказати нормальні, це приклад
           { name: "1200x700", price: 5500 },
           { name: "1400x800", price: 6200 },
           // Додай сюда всі розміри і виправити ці, це приклад
