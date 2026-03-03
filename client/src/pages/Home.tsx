@@ -42,19 +42,21 @@ export default function Home() {
             key={product.id} 
             className="bg-slate-800 p-4 rounded-lg shadow-lg border border-slate-700 flex flex-col justify-between hover:scale-[1.02] transition-transform"
           >
-            {/* Реальне фото з твоєї папки public/products */}
+            {/* Реальне фото з папки public/products */}
             <img 
-              src={`/products/stil/transformer.jpg`} 
-              alt={product.name}
-              className="h-48 w-full object-cover rounded-md mb-4"
-              onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x200?text=No+Photo'; }}
+            src={product.name.toLowerCase().includes('пуф') 
+            ? '/products/pufik/puf 5v1.jpg' 
+            : '/products/stil/transformer.jpg'
+            } 
+            alt={product.name}
+            className="h-48 w-full object-cover rounded-md mb-4"
+            onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x200?text=No+Photo'; }}
             />
-            
             <h3 className="text-xl font-semibold mb-2 text-white">{product.name}</h3>
             
             {/* Беремо ціну найпершого розміру */}
             <p className="text-teal-400 font-bold text-lg mb-4">
-              від {product.sizes[0]?.price || 0} грн
+              від {product.sizes[0]?.price || 3290} грн
             </p>
             
             {/* Кнопка веде на сторінку деталей товару */}

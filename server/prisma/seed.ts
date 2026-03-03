@@ -468,7 +468,31 @@ async function main() {
       }
     }
   })
-  
+  const pouf = await prisma.product.create({
+  data: {
+    name: "Пуф-трансформер 5в1",
+    description: "Унікальний пуф, який перетворюється на 5 повноцінних стільців! 🛋️/nМіцний металевий каркас та зносостійка тканина.",
+    category: "Пуфи",
+    
+    // Додаємо і кольори каркаса, і варіанти тканини в один масив colors
+    colors: {
+      create: [
+        // Тканини
+        { name: "Тканина: Стандарт" , imageUrl: "/fabrics/standard.jpg" },
+        { name: "Тканина: Преміум", imageUrl: "/fabrics/emerald-rogozhka.jpg" },
+        
+        // Кольори каркаса (металу/основи)
+        { name: "Каркас: Чорний матовий", imageUrl: "/colors/black-metal.jpg" },
+      ]
+    },
+    sizes: {
+      create: [
+        { name: "Стандарт", price: 3290 },
+        { name: "Преміум", price: 3790 }
+      ]
+    }
+  }
+});
   console.log("Seed completed successfully!");
 }
 
