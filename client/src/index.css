@@ -1,1 +1,17 @@
 @import "tailwindcss";
+
+@theme {
+  /* Тепер це справжній колір персикового соку */
+  --color-peach-50: #FFF5F0; 
+  --color-peach-100: #FFD3B6; /* Більш насичений і рожевий персик */
+  --color-peach-200: #FFA878; 
+  --color-peach-500: #FF8A50; /* Яскравий акцентний */
+  --color-peach-900: #5C2B1B; /* Глибокий коричневий для тексту */
+}
+
+body {
+  background-color: #FFD3B6 !important; /* Насичений персик */
+  color: #5C2B1B !important;
+  margin: 0;
+  padding: 0;
+}

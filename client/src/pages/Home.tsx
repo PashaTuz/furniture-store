@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-// Тип даних, щоб TypeScript розумів, що приходить з бази
 interface Product {
   id: string;
   name: string;
@@ -10,12 +9,10 @@ interface Product {
 }
 
 export default function Home() {
-  // Тут ми зберігатимемо товари з бази
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Отримуємо реальні дані з твого сервера
     fetch("http://localhost:5000/api/products")
       .then((res) => res.json())
       .then((data) => {
@@ -28,43 +25,50 @@ export default function Home() {
       });
   }, []);
 
-  if (loading) return <div className="text-center py-10 text-white">Завантаження каталогу... 🛋️</div>;
+  if (loading) return (
+    <div className="text-center py-20 text-peach-900 font-medium animate-pulse text-xl">
+      Завантаження каталогу затишку... 🛋️
+    </div>
+  );
 
   return (
-    <div>
-      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-white">
+    <div className="pb-10">
+      <h2 className="text-2xl md:text-4xl font-bold mb-8 text-peach-900 tracking-tight text-center md:text-left">
         🏠 Наш каталог меблів
       </h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
         {products.map((product) => (
           <div 
             key={product.id} 
-            className="bg-slate-800 p-4 rounded-lg shadow-lg border border-slate-700 flex flex-col justify-between hover:scale-[1.02] transition-transform"
+            className="bg-white p-5 rounded-[2rem] shadow-sm border border-peach-100 flex flex-col justify-between hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
           >
-            {/* Реальне фото з папки public/products */}
-            <img 
-            src={product.name.toLowerCase().includes('пуф') 
-            ? '/products/pufik/puf 5v1.jpg' 
-            : '/products/stil/transformer.jpg'
-            } 
-            alt={product.name}
-            className="h-48 w-full object-cover rounded-md mb-4"
-            onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x200?text=No+Photo'; }}
-            />
-            <h3 className="text-xl font-semibold mb-2 text-white">{product.name}</h3>
+            <div>
+              {/* Фото товару */}
+              <div className="overflow-hidden rounded-2xl mb-4 bg-peach-50">
+                <img 
+                  src={product.name.toLowerCase().includes('пуф') 
+                    ? '/products/pufik/puf 5v1.jpg' 
+                    : '/products/stil/transformer.jpg'
+                  } 
+                  alt={product.name}
+                  className="h-56 w-full object-cover hover:scale-110 transition-transform duration-500"
+                  onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x200?text=Меблі'; }}
+                />
+              </div>
+
+              <h3 className="text-xl font-bold mb-2 text-peach-900">{product.name}</h3>
+              
+              <p className="text-peach-500 font-extrabold text-lg mb-6">
+                від {product.sizes[0]?.price || 3290} грн
+              </p>
+            </div>
             
-            {/* Беремо ціну найпершого розміру */}
-            <p className="text-teal-400 font-bold text-lg mb-4">
-              від {product.sizes[0]?.price || 3290} грн
-            </p>
-            
-            {/* Кнопка веде на сторінку деталей товару */}
             <Link 
               to={`/product/${product.id}`}
-              className="bg-teal-500 hover:bg-teal-600 text-white text-center py-2 px-4 rounded-md transition"
+              className="bg-peach-200 hover:bg-peach-500 text-peach-900 hover:text-white text-center py-3 px-4 rounded-2xl font-bold transition-all duration-300 active:scale-95"
             >
-              Переглянути розміри
+              Переглянути деталі
             </Link>
           </div>
         ))}
