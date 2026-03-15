@@ -36,6 +36,7 @@ app.get('/api/products', async (req, res) => {
     const products = await prisma.product.findMany({
       include: {
         sizes: true, // шоб підтягнуло ціни і розміри для всіх товарів
+        colors: true,
       },
     });
     // відправка списка товарів до клієнта(фронтенду)
@@ -66,6 +67,7 @@ app.get('/api/products/:id', async (req, res) => {
       where: { id: id }, // шукає в базі товар з таким ID
       include: {
         sizes: true, // обов'язково додати розміри і ціни
+        colors: true,
       }
     });
     
