@@ -1,98 +1,78 @@
-import express from "express";  // правильно працює з esModuleInterop: true
+import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
-import { PrismaClient } from '@prisma/client';
 
-// 1 - ініціалізація Prisma Client
-// це створить звязок з бд
-const prisma = new PrismaClient();
+// --- ІМПОРТ МАРШРУТІВ ---
+// Ми винесли логіку в окремі файли, щоб app.ts не перетворювався на "смітник"
+import authRoutes from './routes/auth.routes';
+import productRoutes from './routes/product.routes';
 
 export const app = express();
 
-// --- БЛОК 2 - MIDDLEWARES --- настройки сервера ---
-// мають бути перерд маршрутами app.get --- ВСЄГДА
+/**
+ * ==========================================
+ * БЛОК 1: MIDDLEWARES (Проміжне ПЗ)
+ * Ці функції обробляють запит ДО того, як він дійде до маршрутів
+ * ==========================================
+ */
 
-// Helmet дабавляє заголовки безпеки від атак
-app.use(helmet({
-  crossOriginResourcePolicy: false, //Дозволяє загрузити фото з сервера
+// Helmet додає заголовки безпеки, щоб захистити сервер від поширених вразливостей
+app.use(helmet({ 
+  crossOriginResourcePolicy: false // Дозволяє завантажувати фото з сервера на фронтенд
 }));
 
-// CORS дозволяє фронтенду(порт 5173) брати дані з бекенду (порт 5000)
+// CORS дозволяє вашому фронтенду (наприклад, localhost:5173) робити запити до цього сервера
 app.use(cors());
 
-// дозволяє серверу розуміти дані у форматі JSON --- приклад при створені заказа
+// Дозволяє серверу читати JSON-дані, які приходять у тілі запиту (req.body)
 app.use(express.json());
 
-// виводить в термінал логи(хто і коли заходив на сервер), полєзно для розробки
+// Morgan виводить у консоль інформацію про кожен запит (метод, шлях, статус-код)
 app.use(morgan("dev"));
 
-// --- Блок 3 ROUTES (маршрути/ендпоінти) ---
 
-// головний маршрут для отримання всіх товарів
-app.get('/api/products', async (req, res) => {
-  try {
-    // звертаюсь до бд через Prisma
-    const products = await prisma.product.findMany({
-      include: {
-        sizes: true, // шоб підтягнуло ціни і розміри для всіх товарів
-        colors: true,
-      },
-    });
-    // відправка списка товарів до клієнта(фронтенду)
-    res.json(products);
-  } catch (error) {
-    // якшо шось пішло не так --- приклад - виключена бд
-    console.error("Помилка БД:", error);
-    res.status(500).json({ error: "Помилка завантаження товарів" });
-  }
-});
+/**
+ * ==========================================
+ * БЛОК 2: ROUTES (Маршрути)
+ * Визначаємо головні точки входу в API
+ * ==========================================
+ */
 
-// Тестовий роут
-app.get("/health", (req, res) => {
-  res.json({ status: "ok", message: "Server is running" });
-});
+// Всі запити, що починаються з /api/auth, підуть у файл auth.routes.ts
+app.use('/api/auth', authRoutes);
 
-// Базовий роут
-app.get("/", (req, res) => {
-  res.json({ status: "ok", message: "Welcome to Furniture Store API" });
-});
+// Всі запити, що починаються з /api/products, підуть у файл product.routes.ts
+app.use('/api/products', productRoutes);
 
-// роут для отримання одного конкретного товару за ID
-app.get('/api/products/:id', async (req, res) => {
-  const { id } = req.params; // витягує ID з адресу посилання
+/**
+ * БАЗОВІ ПЕРЕВІРКИ
+ */
 
-  try {
-    const product = await prisma.product.findUnique({
-      where: { id: id }, // шукає в базі товар з таким ID
-      include: {
-        sizes: true, // обов'язково додати розміри і ціни
-        colors: true,
-      }
-    });
-    
-    // якшо товар не найдено
-    if (!product) {
-      return res.status(404).json({ error: "Товар не знайдено" });
-    }
-    // віддаємо знайдений товар
-    res.json(product);
+// Роут для моніторингу (перевірка чи живий сервер)
+app.get("/health", (req, res) => res.json({ status: "ok", uptime: process.uptime() }));
 
-  } catch (error) {
-    // якшо сталася помилка -приклад- невірний формат id
-    console.error("помилка при отримані товару:", error);
-    res.status(500).json({ error: "Помилка при завантажені товару" });
-  }
-});
+// Вітальне повідомлення на головній сторінці API
+app.get("/", (req, res) => res.json({ message: "Welcome to Furniture Store API v1.0" }));
 
-// --- БЛОК 4 - ОБРОБКА НЕІСНУЮЧИХ МАРШРУТІВ (404) ---
+
+/**
+ * ==========================================
+ * БЛОК 3: ERROR HANDLING (Обробка помилок)
+ * ==========================================
+ */
+
+// 1. Обробка 404 (якщо клієнт звернувся за адресою, якої не існує)
 app.use((req, res) => {
-  res.status(404).json({ error: "Маршрут не знайдено" });
+  res.status(404).json({ error: "Маршрут не знайдено. Перевірте правильність URL." });
 });
 
-// Базовий error handler
-// Викликається, якщо в коді сталася непередбачувана помилка
+// 2. Глобальний обробник помилок (якщо десь у коді сталася критична помилка)
+// Це "страховка", щоб сервер не впав, а надіслав коректну відповідь 500
 app.use((err: any, req: any, res: any, next: any) => {
-  console.error(err.stack);
-  res.status(500).json({ error: "Internal Server Error" });
+  console.error("Критична помилка сервера:", err.stack);
+  res.status(500).json({ 
+    error: "Внутрішня помилка сервера",
+    details: process.env.NODE_ENV === 'development' ? err.message : {} 
+  });
 });
