@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// ОТРИМАННЯ ВСІХ ТОВАРІВ
+// 1. ОТРИМАННЯ ВСІХ ТОВАРІВ
 export const getProducts = async (req: Request, res: Response) => {
   try {
     const products = await prisma.product.findMany({
@@ -16,7 +16,7 @@ export const getProducts = async (req: Request, res: Response) => {
   }
 };
 
-// ОТРИМАННЯ ТОВАРУ ЗА ID
+// 2. ОТРИМАННЯ ТОВАРУ ЗА ID
 export const getProductById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -31,14 +31,12 @@ export const getProductById = async (req: Request, res: Response) => {
   }
 };
 
-// СТВОРЕННЯ НОВОГО ТОВАРУ
+// 3. СТВОРЕННЯ НОВОГО ТОВАРУ
 export const createProduct = async (req: Request, res: Response) => {
   try {
-    // Використовуємо 'as any', щоб уникнути конфлікту типів ReadableStream
     const body = req.body as any;
     const { name, description, category, colors, sizes } = body;
 
-    // Валідація обов'язкових полів
     if (!name || !category) {
       return res.status(400).json({ error: "Назва та категорія обов'язкові поля" });
     }
@@ -49,18 +47,15 @@ export const createProduct = async (req: Request, res: Response) => {
         description: description || "",
         category: String(category),
         colors: {
-          // Завдяки оновленій схемі (?), ми передаємо тільки те, що реально потрібно
           create: Array.isArray(colors) ? colors.map((c: any) => ({
             colorName: String(c.colorName),
             hex: String(c.hex),
-            // name та imageUrl тепер опціональні, їх можна не вказувати
           })) : []
         },
         sizes: {
           create: Array.isArray(sizes) ? sizes.map((s: any) => ({
             sizeValue: String(s.sizeValue),
             price: globalThis.Number(s.price),
-            // Поле 'name' у ProductSize зазвичай дублює розмір для зручності пошуку
             name: String(s.sizeValue) 
           })) : []
         }
@@ -75,5 +70,48 @@ export const createProduct = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error("❌ ПОМИЛКА ПРИ СТВОРЕННІ:", error.message);
     res.status(500).json({ error: error.message });
+  }
+};
+
+// 4. ОНОВЛЕННЯ ТОВАРУ (ЗАДАЧА #29)
+export const updateProduct = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { name, description, category, colors, sizes } = req.body;
+
+  try {
+    const result = await prisma.product.update({
+      where: { id },
+      data: {
+        name,
+        description,
+        category,
+        // Оновлюємо кольори: видаляємо старі, створюємо нові
+        colors: colors ? {
+          deleteMany: {}, 
+          create: colors.map((c: any) => ({
+            colorName: String(c.colorName),
+            hex: String(c.hex)
+          }))
+        } : undefined,
+        // Оновлюємо розміри: видаляємо старі, створюємо нові
+        sizes: sizes ? {
+          deleteMany: {},
+          create: sizes.map((s: any) => ({
+            sizeValue: String(s.sizeValue),
+            price: globalThis.Number(s.price),
+            name: String(s.sizeValue)
+          }))
+        } : undefined
+      },
+      include: {
+        colors: true,
+        sizes: true
+      }
+    });
+
+    res.status(200).json(result);
+  } catch (error: any) {
+    console.error("❌ ПОМИЛКА ПРИ ОНОВЛЕННІ:", error.message);
+    res.status(500).json({ message: "Error updating product", error: error.message });
   }
 };

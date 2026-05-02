@@ -1,12 +1,13 @@
 import { Router } from 'express';
-// 1. Додаємо createProduct в імпорт із контролера
+// 1. Додаємо updateProduct в список імпорту
 import { 
   getProducts, 
   getProductById, 
-  createProduct 
+  createProduct,
+  updateProduct 
 } from '../controllers/product.controller';
 
-// 2. Імпортуємо твої мідлвари для захисту
+// 2. Імпортуємо мідлвари для захисту
 import { authGuard, adminGuard } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -26,11 +27,15 @@ router.get('/:id', getProductById);
 /**
  * 3. СТВОРИТИ новий товар (Тільки для ADMIN)
  * POST /api/products
- * 
- * Тут працює "подвійний замок":
- * - authGuard: перевіряє, чи юзер взагалі залогінений.
- * - adminGuard: перевіряє, чи є у нього права адміністратора.
  */
 router.post('/', authGuard, adminGuard, createProduct);
+
+/**
+ * 4. ОНОВИТИ існуючий товар (Тільки для ADMIN) - ЗАДАЧА #29
+ * PUT /api/products/:id
+ * 
+ * Також додаємо authGuard та adminGuard для безпеки.
+ */
+router.put('/:id', authGuard, adminGuard, updateProduct);
 
 export default router;
