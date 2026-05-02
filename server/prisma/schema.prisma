@@ -42,8 +42,10 @@ model Product {
 // --- ВАРІАЦІЇ КОЛЬОРІВ ---
 model ProductColor {
   id        String  @id @default(cuid())
-  name      String
-  imageUrl  String
+  name      String?
+  colorName String?
+  hex       String? 
+  imageUrl  String?
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
@@ -52,6 +54,7 @@ model ProductColor {
 model ProductSize {
   id        String  @id @default(cuid())
   name      String
+  sizeValue String?
   price     Float
   comment   String?
   productId String

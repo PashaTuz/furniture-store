@@ -1,63 +1,79 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 
-// Ініціалізуємо Prisma клієнт для роботи з базою даних
 const prisma = new PrismaClient();
 
-/**
- * ОТРИМАННЯ ВСІХ ТОВАРІВ
- * GET /api/products
- */
+// ОТРИМАННЯ ВСІХ ТОВАРІВ
 export const getProducts = async (req: Request, res: Response) => {
   try {
-    // Використовуємо findMany для пошуку всіх записів у таблиці Product
     const products = await prisma.product.findMany({
-      // include дозволяє "підтягнути" дані з пов'язаних таблиць (відносини 1-до-багатьох)
-      include: {
-        colors: true, // Додаємо масив доступних кольорів для кожного товару
-        sizes: true,  // Додаємо масив доступних розмірів та цін
-      },
-      // Можна додати сортування (наприклад, спочатку нові)
-      orderBy: {
-        createdAt: 'desc',
-      },
+      include: { colors: true, sizes: true },
+      orderBy: { createdAt: 'desc' },
     });
-
-    // Відправляємо успішну відповідь зі списком товарів
     res.status(200).json(products);
-  } catch (error) {
-    console.error('Помилка при отриманні списку товарів:', error);
-    res.status(500).json({ error: 'Не вдалося завантажити список товарів' });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
   }
 };
 
-/**
- * ОТРИМАННЯ ОДНОГО ТОВАРУ ЗА ID
- * GET /api/products/:id
- */
+// ОТРИМАННЯ ТОВАРУ ЗА ID
 export const getProductById = async (req: Request, res: Response) => {
   try {
-    // Витягуємо ID з параметрів запиту (URL)
     const { id } = req.params;
-
-    // Шукаємо унікальний запис у базі
     const product = await prisma.product.findUnique({
-      where: { id: id },
-      include: {
-        colors: true,
-        sizes: true,
-      },
+      where: { id },
+      include: { colors: true, sizes: true },
     });
+    if (!product) return res.status(404).json({ error: 'Товар не знайдено' });
+    res.status(200).json(product);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
-    // Якщо товар не знайдено — повертаємо 404
-    if (!product) {
-      return res.status(404).json({ error: 'Товар не знайдено' });
+// СТВОРЕННЯ НОВОГО ТОВАРУ
+export const createProduct = async (req: Request, res: Response) => {
+  try {
+    // Використовуємо 'as any', щоб уникнути конфлікту типів ReadableStream
+    const body = req.body as any;
+    const { name, description, category, colors, sizes } = body;
+
+    // Валідація обов'язкових полів
+    if (!name || !category) {
+      return res.status(400).json({ error: "Назва та категорія обов'язкові поля" });
     }
 
-    // Відправляємо знайдений товар
-    res.status(200).json(product);
-  } catch (error) {
-    console.error(`Помилка при отриманні товару з ID ${req.params.id}:`, error);
-    res.status(500).json({ error: 'Помилка сервера при пошуку товару' });
+    const newProduct = await prisma.product.create({
+      data: {
+        name: String(name),
+        description: description || "",
+        category: String(category),
+        colors: {
+          // Завдяки оновленій схемі (?), ми передаємо тільки те, що реально потрібно
+          create: Array.isArray(colors) ? colors.map((c: any) => ({
+            colorName: String(c.colorName),
+            hex: String(c.hex),
+            // name та imageUrl тепер опціональні, їх можна не вказувати
+          })) : []
+        },
+        sizes: {
+          create: Array.isArray(sizes) ? sizes.map((s: any) => ({
+            sizeValue: String(s.sizeValue),
+            price: globalThis.Number(s.price),
+            // Поле 'name' у ProductSize зазвичай дублює розмір для зручності пошуку
+            name: String(s.sizeValue) 
+          })) : []
+        }
+      },
+      include: { 
+        colors: true, 
+        sizes: true 
+      }
+    });
+
+    res.status(201).json(newProduct);
+  } catch (error: any) {
+    console.error("❌ ПОМИЛКА ПРИ СТВОРЕННІ:", error.message);
+    res.status(500).json({ error: error.message });
   }
 };
