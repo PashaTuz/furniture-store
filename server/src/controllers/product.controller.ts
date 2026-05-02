@@ -34,8 +34,7 @@ export const getProductById = async (req: Request, res: Response) => {
 // 3. СТВОРЕННЯ НОВОГО ТОВАРУ
 export const createProduct = async (req: Request, res: Response) => {
   try {
-    const body = req.body as any;
-    const { name, description, category, colors, sizes } = body;
+    const { name, description, category, colors, sizes } = req.body;
 
     if (!name || !category) {
       return res.status(400).json({ error: "Назва та категорія обов'язкові поля" });
@@ -55,15 +54,12 @@ export const createProduct = async (req: Request, res: Response) => {
         sizes: {
           create: Array.isArray(sizes) ? sizes.map((s: any) => ({
             sizeValue: String(s.sizeValue),
-            price: globalThis.Number(s.price),
+            price: Number(s.price),
             name: String(s.sizeValue) 
           })) : []
         }
       },
-      include: { 
-        colors: true, 
-        sizes: true 
-      }
+      include: { colors: true, sizes: true }
     });
 
     res.status(201).json(newProduct);
@@ -79,39 +75,61 @@ export const updateProduct = async (req: Request, res: Response) => {
   const { name, description, category, colors, sizes } = req.body;
 
   try {
+    // Спочатку перевіряємо, чи існує товар, щоб видати 404 замість 500
+    const existingProduct = await prisma.product.findUnique({ where: { id } });
+    if (!existingProduct) {
+      return res.status(404).json({ message: "Товар для оновлення не знайдено" });
+    }
+
     const result = await prisma.product.update({
       where: { id },
       data: {
         name,
         description,
         category,
-        // Оновлюємо кольори: видаляємо старі, створюємо нові
-        colors: colors ? {
+        colors: Array.isArray(colors) ? {
           deleteMany: {}, 
           create: colors.map((c: any) => ({
             colorName: String(c.colorName),
             hex: String(c.hex)
           }))
         } : undefined,
-        // Оновлюємо розміри: видаляємо старі, створюємо нові
-        sizes: sizes ? {
+        sizes: Array.isArray(sizes) ? {
           deleteMany: {},
           create: sizes.map((s: any) => ({
             sizeValue: String(s.sizeValue),
-            price: globalThis.Number(s.price),
+            price: Number(s.price),
             name: String(s.sizeValue)
           }))
         } : undefined
       },
-      include: {
-        colors: true,
-        sizes: true
-      }
+      include: { colors: true, sizes: true }
     });
 
     res.status(200).json(result);
   } catch (error: any) {
     console.error("❌ ПОМИЛКА ПРИ ОНОВЛЕННІ:", error.message);
     res.status(500).json({ message: "Error updating product", error: error.message });
+  }
+};
+
+// 5. ВИДАЛЕННЯ ТОВАРУ (ЗАДАЧА #30)
+export const deleteProduct = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    const existingProduct = await prisma.product.findUnique({ where: { id } });
+    if (!existingProduct) {
+      return res.status(404).json({ message: "Товар не знайдено" });
+    }
+
+    await prisma.product.delete({
+      where: { id },
+    });
+
+    res.status(200).json({ message: "Товар успішно видалено" });
+  } catch (error: any) {
+    console.error("❌ ПОМИЛКА ПРИ ВИДАЛЕННІ:", error.message);
+    res.status(500).json({ error: "Не вдалося видалити товар" });
   }
 };

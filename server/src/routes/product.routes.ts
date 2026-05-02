@@ -1,10 +1,11 @@
 import { Router } from 'express';
-// 1. Додаємо updateProduct в список імпорту
+// 1. Додаємо updateProduct та deleteProduct в список імпорту
 import { 
   getProducts, 
   getProductById, 
   createProduct,
-  updateProduct 
+  updateProduct,
+  deleteProduct // Додано для задачі #30
 } from '../controllers/product.controller';
 
 // 2. Імпортуємо мідлвари для захисту
@@ -33,9 +34,16 @@ router.post('/', authGuard, adminGuard, createProduct);
 /**
  * 4. ОНОВИТИ існуючий товар (Тільки для ADMIN) - ЗАДАЧА #29
  * PUT /api/products/:id
- * 
- * Також додаємо authGuard та adminGuard для безпеки.
  */
 router.put('/:id', authGuard, adminGuard, updateProduct);
+
+/**
+ * 5. ВИДАЛИТИ товар (Тільки для ADMIN) - ЗАДАЧА #30
+ * DELETE /api/products/:id
+ * 
+ * Видалення також захищене подвійним мідлваром.
+ */
+router.delete('/:id', authGuard, adminGuard, deleteProduct);
+
 
 export default router;
