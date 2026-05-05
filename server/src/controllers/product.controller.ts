@@ -2,16 +2,50 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
-
-// 1. ОТРИМАННЯ ВСІХ ТОВАРІВ
+//задача 31
 export const getProducts = async (req: Request, res: Response) => {
   try {
+    // 1. Отримуємо параметри з URL (query string)
+    const { category, search, minPrice, maxPrice } = req.query;
+
+    // 2. Створюємо об'єкт фільтрації для Prisma
+    const where: any = {};
+
+    // Фільтр за категорією
+    if (category) {
+      where.category = String(category);
+    }
+
+    // Пошук за назвою (insensitive — ігнорує регістр: Диван = диван)
+    if (search) {
+      where.name = {
+        contains: String(search),
+        mode: 'insensitive',
+      };
+    }
+
+    // Фільтрація за ціною (через вкладену модель sizes)
+    if (minPrice || maxPrice) {
+      where.sizes = {
+        some: { // Шукаємо, чи є хоча б один розмір, що підпадає під діапазон
+          price: {
+            gte: minPrice ? Number(minPrice) : 0,
+            lte: maxPrice ? Number(maxPrice) : 999999,
+          },
+        },
+      };
+    }
+
+    // 3. Виконується запит із застосуванням фільтрів
     const products = await prisma.product.findMany({
+      where, // Передаємо наш об'єкт фільтрів
       include: { colors: true, sizes: true },
       orderBy: { createdAt: 'desc' },
     });
+
     res.status(200).json(products);
   } catch (error: any) {
+    console.error("❌ ПОМИЛКА ФІЛЬТРАЦІЇ:", error.message);
     res.status(500).json({ error: error.message });
   }
 };

@@ -1,31 +1,23 @@
 {
   "compilerOptions": {
-    /* Базові налаштування */
-    "target": "ES2020",           // Вказує версію JavaScript, в яку буде скомпільовано код (сучасний стандарт)
-    "module": "CommonJS",         // Система модулів для Node.js (використовує require/module.exports)
-    
-    /* Шляхи */
-    "rootDir": "./",              // Корінь проекту. Ми змінили його з ./src на ./, щоб TS бачив і папку prisma
-    "outDir": "./dist",           // Папка, куди потрапить готовий скомпільований JavaScript код
-    
-    /* Перевірка типів */
-    "strict": true,               // Вмикає всі суворі перевірки типів (робить код надійнішим)
-    "skipLibCheck": true,         // Пропускати перевірку типів у бібліотеках (прискорює компіляцію)
-    
-    /* Сумісність */
-    "esModuleInterop": true,      // Дозволяє імпортувати CommonJS модулі як ES модулі (наприклад, import * as dotenv)
-    "moduleResolution": "node"    // Каже TypeScript шукати модулі так само, як це робить Node.js
+    "target": "ES2020",
+    "module": "CommonJS",
+    "rootDir": "./",
+    "outDir": "./dist",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    /* Ми прибрали moduleResolution, щоб дозволити TS обрати найкращий варіант автоматично */
+    /* Або використай "node", але без додаткових прапорців ігнорування, якщо вони видають помилку */
+    "moduleResolution": "node"
   },
-
-  /* Які файли TypeScript має бачити */
   "include": [
-    "src/src/**/*",                   // Всі файли в папці src (твій основний код)
-    "prisma/seed.ts"              // Наш файл для наповнення бази даних (тепер він офіційно частина проекту)
-, "src/generated", "src/app.ts", "src/server.ts"  ],
-
-  /* Які папки та файли ігнорувати */
+    "src/**/*",
+    "prisma/seed.ts",
+    "prisma/**/*.ts"
+  ],
   "exclude": [
-    "node_modules",               // Не перевіряти встановлені бібліотеки
-    "prisma.config.ts"            // Виключаємо конфіг Prisma, бо він зазвичай обробляється самою Prisma
+    "node_modules",
+    "dist"
   ]
 }
