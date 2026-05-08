@@ -1,49 +1,91 @@
 import { Router } from 'express';
-// 1. Додаємо updateProduct та deleteProduct в список імпорту
 import { 
   getProducts, 
   getProductById, 
-  createProduct,
-  updateProduct,
-  deleteProduct // Додано для задачі #30
+  createProduct, 
+  updateProduct, 
+  deleteProduct 
 } from '../controllers/product.controller';
-
-// 2. Імпортуємо мідлвари для захисту
 import { authGuard, adminGuard } from '../middleware/auth.middleware';
 
 const router = Router();
 
 /**
- * 1. Отримати ВСІ товари (Публічно)
- * GET /api/products
+ * @swagger
+ * /api/products:
+ *   get:
+ *     summary: Отримати всі меблі
+ *     tags: [Products]
+ *     responses:
+ *       200:
+ *         description: Список товарів успішно отримано
+ *   post:
+ *     summary: Створити новий товар (Admin)
+ *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       201:
+ *         description: Товар створено
+ *       403:
+ *         description: Немає прав доступу
  */
 router.get('/', getProducts);
-
-/**
- * 2. Отримати ОДИН товар за ID (Публічно)
- * GET /api/products/:id
- */
-router.get('/:id', getProductById);
-
-/**
- * 3. СТВОРИТИ новий товар (Тільки для ADMIN)
- * POST /api/products
- */
 router.post('/', authGuard, adminGuard, createProduct);
 
 /**
- * 4. ОНОВИТИ існуючий товар (Тільки для ADMIN) - ЗАДАЧА #29
- * PUT /api/products/:id
+ * @swagger
+ * /api/products/{id}:
+ *   get:
+ *     summary: Отримати товар за ID
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Унікальний ID товару
+ *     responses:
+ *       200:
+ *         description: Дані товару отримано
+ *       404:
+ *         description: Товар не знайдено
+ *   put:
+ *     summary: Оновити товар (Admin)
+ *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Товар оновлено
+ *       404:
+ *         description: Товар не знайдено
+ *   delete:
+ *     summary: Видалити товар (Admin)
+ *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Товар видалено
+ *       404:
+ *         description: Товар не знайдено
  */
+router.get('/:id', getProductById);
 router.put('/:id', authGuard, adminGuard, updateProduct);
-
-/**
- * 5. ВИДАЛИТИ товар (Тільки для ADMIN) - ЗАДАЧА #30
- * DELETE /api/products/:id
- * 
- * Видалення також захищене подвійним мідлваром.
- */
 router.delete('/:id', authGuard, adminGuard, deleteProduct);
-
 
 export default router;

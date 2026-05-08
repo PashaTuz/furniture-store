@@ -14,7 +14,34 @@ const router = Router();
 
 // 1. Реєстрація нового акаунта
 router.post('/register', register);
-
+/**
+ * @swagger
+ *   /api/auth/login:
+ *     post:
+ *       summary: Увійти в систему
+ *       tags: [Auth]
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required:
+ *                 - email
+ *                 - password
+ *               properties:
+ *               email:
+ *                 type: string
+ *                 example: user@example.com
+ *               password:
+ *                 type: string
+ *                 example: password123
+ *       responses:
+ *         200:
+ *           description: Успішний вхід
+ *         401:
+ *           description: Невірний пароль або email
+ */
 // 2. Вхід (отримання пари токенів)
 router.post('/login', login);
 
