@@ -9,13 +9,26 @@ import path from "path";
 // --- ІМПОРТ МАРШРУТІВ ---
 import authRoutes from './routes/auth.routes';
 import productRoutes from './routes/product.routes';
-import orderRoutes from './routes/order.routes'; // <-- 1. ДОДАТИ ЦЕ
+import orderRoutes from './routes/order.routes'; 
 
 export const app = express();
 
 /**
  * ==========================================
- * БЛОК 0: SWAGGER DOCUMENTATION
+ * БЛОК 0: CONFIG & MIDDLEWARES
+ * ==========================================
+ */
+// Вимикаємо сувору перевірку слешів (щоб /api/orders працював як /api/orders/)
+app.set('strict routing', false);
+
+app.use(helmet({ crossOriginResourcePolicy: false }));
+app.use(cors());
+app.use(express.json());
+app.use(morgan("dev"));
+
+/**
+ * ==========================================
+ * БЛОК 1: SWAGGER DOCUMENTATION
  * ==========================================
  */
 const swaggerOptions = {
@@ -28,10 +41,9 @@ const swaggerOptions = {
         },
         servers: [
             {
-                url: 'http://localhost:5000/api',
+                url: 'http://localhost:5000',
             },
         ],
-        // ДОДАНО ЦЕЙ БЛОК КОМПОНЕНТІВ
         components: {
             securitySchemes: {
                 bearerAuth: {
@@ -42,44 +54,52 @@ const swaggerOptions = {
             },
         },
     },
-    apis: ["./src/routes/product.routes.ts", "./src/routes/order.routes.ts", "./src/routes/auth.routes.ts"], 
+    // Переконайся, що шлях до файлів правильний. 
+    // Якщо ти в папці src, використовуй "./src/routes/*.ts" або просто "./routes/*.ts"
+    apis: ["./src/routes/*.ts", "./routes/*.ts"], 
 };
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-/**
- * ==========================================
- * БЛОК 1: MIDDLEWARES
- * ==========================================
- */
-app.use(helmet({ crossOriginResourcePolicy: false }));
-app.use(cors());
-app.use(express.json());
-app.use(morgan("dev"));
 
 /**
  * ==========================================
- * БЛОК 2: ROUTES
+ * БЛОК 2: ROUTES (ОСНОВНІ МАРШРУТИ)
  * ==========================================
  */
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
-app.use('/api/orders', orderRoutes); // <-- 2. ДОДАТИ ЦЕ
+app.use('/api/orders', orderRoutes);
 
+// Додаткові сервісні маршрути
 app.get("/health", (req, res) => res.json({ status: "ok", uptime: process.uptime() }));
 app.get("/", (req, res) => res.json({ message: "Welcome to Furniture Store API v1.0" }));
 
 /**
  * ==========================================
- * БЛОК 3: ERROR HANDLING
+ * БЛОК 3: ERROR HANDLING (ПІСЛЯ ВСІХ МАРШРУТІВ)
  * ==========================================
  */
+
+// Цей блок має бути ОСТАННІМ перед обробником 500 помилки
 app.use((req, res, next) => {
-  if (req.path.startsWith('/api-docs')) return next();
-  res.status(404).json({ error: "Маршрут не знайдено." });
+    // Якщо запит на документацію — пропускаємо
+    if (req.path.startsWith('/api-docs')) return next();
+    
+    // Якщо ми тут, значить жоден маршрут вище не спрацював
+    res.status(404).json({ error: `Маршрут [${req.method}] ${req.url} не знайдено.` });
 });
 
+// Глобальний обробник помилок (500)
 app.use((err: any, req: any, res: any, next: any) => {
-  console.error("Критична помилка:", err.stack);
-  res.status(500).json({ error: "Внутрішня помилка сервера" });
+    console.error("Критична помилка:", err.stack);
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
+});
+
+// Логування доступних маршрутів для перевірки
+console.log("--- Перевірка завантажених роутерів ---");
+app._router.stack.forEach((r: any) => {
+    if (r.name === 'router') {
+        console.log(`Router detected: ${r.regexp}`);
+    }
 });
