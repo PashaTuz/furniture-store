@@ -67,6 +67,7 @@ model Order {
   userId    String      // Змінено з Int на String, щоб відповідати User.id (cuid)
   user      User        @relation(fields: [userId], references: [id])
   items     OrderItem[]
+  shippingAddress String
   total     Float
   status    String      @default("PENDING")
   createdAt DateTime    @default(now())
@@ -77,10 +78,9 @@ model OrderItem {
   id        Int     @id @default(autoincrement())
   orderId   Int
   order     Order   @relation(fields: [orderId], references: [id])
-  
   productId String
   product   Product @relation(fields: [productId], references: [id])
-  
+  sizeId    String
   quantity  Int
   price     Float
 }
