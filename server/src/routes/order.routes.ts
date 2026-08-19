@@ -57,33 +57,33 @@ router.post('/', authGuard, createOrder);
 /**
  * @swagger
  * /api/orders/my-orders:
- * get:
- *   summary: Отримати список замовлень поточного користувача
- *    tags:
- *      - Orders
- *    security:
- *      - bearerAuth: []
- *    responses:
- *      200:
- *        description: Список замовлень отримано успішно
- *        content:
- *          application/json:
- *            schema:
- *              type: array
- *              items:
- *                type: object
- *                properties:
- *                  id:
- *                    type: string
- *                  totalAmount:
- *                    type: number
- *                  status:
- *                    type: string
- *                  createdAt:
- *                    type: string
- *                    format: date-time
- *      401:
- *        description: Необхідна авторизація
+ *   get:
+ *     summary: Отримати список замовлень поточного користувача
+ *     tags:
+ *       - Orders
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Список замовлень отримано успішно
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   total:
+ *                     type: number
+ *                   status:
+ *                     type: string
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *       401:
+ *         description: Необхідна авторизація
  */
 router.get('/my-orders', authGuard, getMyOrders);
 

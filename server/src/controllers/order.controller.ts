@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { calculateOrderTotal } from '../utils/order.utils';
 
 const prisma = new PrismaClient();
 
@@ -11,37 +12,30 @@ export const createOrder = async (req: Request, res: Response) => {
     const { items, shippingAddress } = req.body;
     const userId = (req as any).user.id; 
 
-    let totalAmount = 0;
-    const orderItems = [];
+    // Отримуємо реальні ціни з БД для всіх переданих розмірів
+    const sizeIds: string[] = items.map((item: { sizeId: string }) => item.sizeId);
+    const productSizes = await prisma.productSize.findMany({
+      where: { id: { in: sizeIds } }
+    });
 
-    // Обчислюємо суму замовлення на основі цін у БД
-    for (const item of items) {
-      const productSize = await prisma.productSize.findUnique({
-        where: { id: item.sizeId }
-      });
+    const priceLookup = new Map(productSizes.map((size) => [size.id, size.price]));
 
-      if (!productSize) {
-        return res.status(404).json({ error: `Розмір ${item.sizeId} не знайдено` });
-      }
-
-      totalAmount += productSize.price * item.quantity;
-      
-      orderItems.push({
-        productId: item.productId,
-        sizeId: item.sizeId,
-        quantity: item.quantity,
-        price: productSize.price 
-      });
+    const missingSizeId = sizeIds.find((id) => !priceLookup.has(id));
+    if (missingSizeId) {
+      return res.status(404).json({ error: `Розмір ${missingSizeId} не знайдено` });
     }
+
+    // Чиста функція, яку можна тестувати окремо від Express/Prisma
+    const { total, pricedItems } = calculateOrderTotal(items, priceLookup);
 
     // Транзакційне створення замовлення
     const order = await prisma.order.create({
       data: {
         userId,
-        total: totalAmount,
-        shippingAddress, 
+        total,
+        shippingAddress,
         items: {
-          create: orderItems
+          create: pricedItems
         }
       },
       include: { items: true }
