@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { createOrder, getMyOrders } from '../controllers/order.controller';
-import { authGuard } from '../middleware/auth.middleware';
+import { createOrder, getMyOrders, getAllOrders } from '../controllers/order.controller';
+import { authGuard, adminGuard } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -53,6 +53,41 @@ const router = Router();
  *         description: Помилка на сервері
  */
 router.post('/', authGuard, createOrder);
+
+/**
+ * @swagger
+ * /api/orders:
+ *   get:
+ *     summary: Отримати список усіх замовлень (тільки для адміна)
+ *     tags:
+ *       - Orders
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Список усіх замовлень отримано успішно
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   total:
+ *                     type: number
+ *                   status:
+ *                     type: string
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *       401:
+ *         description: Необхідна авторизація
+ *       403:
+ *         description: Доступ дозволено тільки адміністраторам
+ */
+router.get('/', authGuard, adminGuard, getAllOrders);
 
 /**
  * @swagger

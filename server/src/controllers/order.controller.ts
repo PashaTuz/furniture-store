@@ -10,7 +10,7 @@ const prisma = new PrismaClient();
 export const createOrder = async (req: Request, res: Response) => {
   try {
     const { items, shippingAddress } = req.body;
-    const userId = (req as any).user.id; 
+    const userId = req.user!.id; 
 
     // Отримуємо реальні ціни з БД для всіх переданих розмірів
     const sizeIds: string[] = items.map((item: { sizeId: string }) => item.sizeId);
@@ -53,7 +53,7 @@ export const createOrder = async (req: Request, res: Response) => {
  */
 export const getMyOrders = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = req.user!.id;
 
     const orders = await prisma.order.findMany({
       where: {
@@ -74,6 +74,34 @@ export const getMyOrders = async (req: Request, res: Response) => {
     res.status(200).json(orders);
   } catch (error: any) {
     console.error("Помилка при отриманні замовлень:", error);
+    res.status(500).json({ error: "Не вдалося отримати список замовлень" });
+  }
+};
+
+export const getAllOrders = async (req: Request, res: Response) => {
+  try {
+    const orders = await prisma.order.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true
+          }
+        },
+        items: {
+          include: {
+            product: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    res.status(200).json(orders);
+  } catch (error: any) {
+    console.error("Помилка при отриманні всіх замовлень:", error);
     res.status(500).json({ error: "Не вдалося отримати список замовлень" });
   }
 };
