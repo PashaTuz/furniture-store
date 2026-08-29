@@ -1,6 +1,8 @@
 import { Router } from 'express';
-import { createOrder, getMyOrders, getAllOrders } from '../controllers/order.controller';
+import { createOrder, getMyOrders, getAllOrders, updateOrderStatus } from '../controllers/order.controller';
 import { authGuard, adminGuard } from '../middleware/auth.middleware';
+import { validate } from '../middleware/validate.middleware';
+import { createOrderSchema } from '../validators/order.validator';
 
 const router = Router();
 
@@ -52,7 +54,7 @@ const router = Router();
  *       500:
  *         description: Помилка на сервері
  */
-router.post('/', authGuard, createOrder);
+router.post('/', authGuard, validate(createOrderSchema), createOrder);
 
 /**
  * @swagger
@@ -121,5 +123,48 @@ router.get('/', authGuard, adminGuard, getAllOrders);
  *         description: Необхідна авторизація
  */
 router.get('/my-orders', authGuard, getMyOrders);
+
+/**
+ * @swagger
+ * /api/orders/{id}/status:
+ *   patch:
+ *     summary: Змінити статус замовлення (тільки для адміна)
+ *     tags:
+ *       - Orders
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID замовлення
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [PENDING, PAID, SHIPPED, DELIVERED, CANCELED]
+ *                 example: "SHIPPED"
+ *     responses:
+ *       200:
+ *         description: Статус успішно оновлено
+ *       400:
+ *         description: Некоректний статус
+ *       401:
+ *         description: Необхідна авторизація
+ *       403:
+ *         description: Доступ дозволено тільки адміністраторам
+ *       404:
+ *         description: Замовлення не знайдено
+ */
+router.patch('/:id/status', authGuard, adminGuard, updateOrderStatus);
 
 export default router;

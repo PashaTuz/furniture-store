@@ -10,6 +10,7 @@ import path from "path";
 import authRoutes from './routes/auth.routes';
 import productRoutes from './routes/product.routes';
 import orderRoutes from './routes/order.routes'; 
+import uploadRoutes from './routes/upload.routes';
 
 export const app = express();
 
@@ -70,7 +71,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
-
+app.use('/api/upload', uploadRoutes);
 // Додаткові сервісні маршрути
 app.get("/health", (req, res) => res.json({ status: "ok", uptime: process.uptime() }));
 app.get("/", (req, res) => res.json({ message: "Welcome to Furniture Store API v1.0" }));

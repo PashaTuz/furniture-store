@@ -105,3 +105,36 @@ export const getAllOrders = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Не вдалося отримати список замовлень" });
   }
 };
+/**
+ * Зміна статусу замовлення (тільки для адміна)
+ */
+export const updateOrderStatus = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    // Перелік дозволених статусів — той самий, що в enum OrderStatus
+    const validStatuses = ['PENDING', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELED'];
+
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        error: `Некоректний статус. Дозволені значення: ${validStatuses.join(', ')}`
+      });
+    }
+
+    const order = await prisma.order.update({
+      where: { id: Number(id) },
+      data: { status },
+      include: { items: true }
+    });
+
+    res.status(200).json(order);
+  } catch (error: any) {
+    // Prisma кидає код P2025, якщо запис з таким id не знайдено
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: `Замовлення з id ${req.params.id} не знайдено` });
+    }
+    console.error("Помилка при оновленні статусу замовлення:", error);
+    res.status(500).json({ error: "Не вдалося оновити статус замовлення" });
+  }
+};
