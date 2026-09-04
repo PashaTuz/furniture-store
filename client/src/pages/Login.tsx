@@ -24,11 +24,13 @@ const Login = () => {
         password
       });
 
-      // Деструктуризація: дістаємо токен та об'єкт юзера з відповіді сервера
-      const { token, user } = response.data;
+      // Деструктуризація: дістаємо токени та об'єкт юзера з відповіді сервера
+      // ВАЖЛИВО: бекенд повертає accessToken і refreshToken, а не token
+      const { accessToken, refreshToken, user } = response.data;
       
       // Зберігаємо дані в localStorage браузера, щоб сайт "пам'ятав" нас після оновлення
-      localStorage.setItem('token', token);
+      localStorage.setItem('token', accessToken);
+      localStorage.setItem('refreshToken', refreshToken);
       localStorage.setItem('user', JSON.stringify(user));
 
       alert(`Привіт, ${user.name}! Ти успішно увійшов.`);

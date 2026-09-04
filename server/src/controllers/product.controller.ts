@@ -81,8 +81,9 @@ export const createProduct = async (req: Request, res: Response) => {
         category: String(category),
         colors: {
           create: Array.isArray(colors) ? colors.map((c: any) => ({
-            colorName: String(c.colorName),
-            hex: String(c.hex),
+            colorName: c.colorName ? String(c.colorName) : null,
+            hex: c.hex ? String(c.hex) : null,
+            imageUrl: c.imageUrl ? String(c.imageUrl) : null,
           })) : []
         },
         sizes: {
