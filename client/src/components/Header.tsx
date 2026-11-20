@@ -38,7 +38,7 @@ export default function Header() {
 
           {/* ДЕСКТОПНЕ МЕНЮ (видиме від 768px і більше) */}
           <nav className="hidden md:flex items-center gap-8 font-bold text-peach-900/80">
-            <Link to="/" className="hover:text-peach-500 transition-colors">Каталог</Link>
+            <Link to="/catalog" className="hover:text-peach-500 transition-colors">Каталог</Link>
             <Link to="/cart" className="hover:text-peach-500 transition-colors">Кошик</Link>
             
             {/* УМОВНИЙ РЕНДЕРИНГ: 

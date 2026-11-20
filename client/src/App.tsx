@@ -6,6 +6,7 @@ import Header from "./components/Header";
 
 // Імпортуємо сторінки:
 import Home from "./pages/Home";       
+import Catalog from "./pages/Catalog";
 import Cart from "./pages/Cart";       
 import Product from "./pages/Product"; 
 import Profile from "./pages/Profile"; 
@@ -28,6 +29,7 @@ function App() {
           <Routes>
             {/* ВІДКРИТІ МАРШРУТИ: Доступні всім */}
             <Route path="/" element={<Home />} />
+            <Route path="/catalog" element={<Catalog />} />
             <Route path="/product/:id" element={<Product />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/login" element={<Login />} />
